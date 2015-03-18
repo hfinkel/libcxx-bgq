@@ -119,10 +119,17 @@ steady_clock::now() _NOEXCEPT
 steady_clock::time_point
 steady_clock::now() _NOEXCEPT
 {
+#if defined(__bgq__)
+    // The BG/Q has only gettimeofday, but it is steady.
+    timeval tv;
+    gettimeofday(&tv, 0);
+    return time_point(seconds(tv.tv_sec) + microseconds(tv.tv_usec));
+#else
     struct timespec tp;
     if (0 != clock_gettime(CLOCK_MONOTONIC, &tp))
         __throw_system_error(errno, "clock_gettime(CLOCK_MONOTONIC) failed");
     return time_point(seconds(tp.tv_sec) + nanoseconds(tp.tv_nsec));
+#endif
 }
 #endif  // __APPLE__
 
