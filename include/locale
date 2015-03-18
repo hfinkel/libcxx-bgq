@@ -213,6 +213,11 @@ template <class charT> class messages_byname;
 #pragma GCC system_header
 #endif
 
+namespace std {
+void
+__throw_bad_alloc(void);
+}
+
 _LIBCPP_BEGIN_NAMESPACE_STD
 
 #if defined(__APPLE__) || defined(__FreeBSD__)
