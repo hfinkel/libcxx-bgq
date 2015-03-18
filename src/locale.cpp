@@ -52,6 +52,19 @@ locale_t __cloc() {
 }
 #endif // __cloc_defined
 
+#ifdef __bgq__
+// newlocale on the BG/Q is broken: "" fails, use C instead.
+static locale_t newlocale_bgq(int category_mask, const char *locale,
+                              locale_t base) {
+  if (locale && !*locale)
+    locale = "C";
+
+  return newlocale(category_mask, locale, base);
+}
+
+#define newlocale newlocale_bgq
+#endif
+
 namespace {
 
 struct release
