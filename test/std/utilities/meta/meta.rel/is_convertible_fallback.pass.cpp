@@ -7,19 +7,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-// XFAIL: libcpp-has-no-stdout
+// type_traits
 
-// <iostream>
+// is_convertible
 
-// istream wcout;
+// Test the fallback implementation.
 
-#include <iostream>
+#define _LIBCPP_USE_IS_CONVERTIBLE_FALLBACK
+#include "is_convertible.pass.cpp"
 
-int main()
-{
-#if 0
-    std::wcout << L"Hello World!\n";
-#else
-    (void)std::wcout;
-#endif
-}
