@@ -12,7 +12,7 @@
 #include <system_error>  // __throw_system_error
 #include <time.h>  // clock_gettime, CLOCK_MONOTONIC and CLOCK_REALTIME
 
-#if !defined(CLOCK_REALTIME)
+#if !defined(CLOCK_REALTIME) || defined(__bgq__)
 #include <sys/time.h>        // for gettimeofday and timeval
 #endif
 
