@@ -198,7 +198,11 @@ add_definitions(-D_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 add_compile_flags_if_supported(
     -Wall -W -Wwrite-strings
     -Wno-unused-parameter -Wno-long-long
-    -Werror=return-type)
+# With this we get:
+# include/__mutex_base:34:16: error: constexpr constructor never produces a constant expression [-Winvalid-constexpr]
+#     constexpr mutex() _NOEXCEPT : __m_(PTHREAD_MUTEX_INITIALIZER) {}
+#    -Werror=return-type)
+     )
 if (LIBCXX_ENABLE_WERROR)
   add_compile_flags_if_supported(-Werror)
   add_compile_flags_if_supported(-WX)
