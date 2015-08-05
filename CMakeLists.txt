@@ -202,7 +202,7 @@ add_compile_flags_if_supported(
 # include/__mutex_base:34:16: error: constexpr constructor never produces a constant expression [-Winvalid-constexpr]
 #     constexpr mutex() _NOEXCEPT : __m_(PTHREAD_MUTEX_INITIALIZER) {}
 #    -Werror=return-type)
-     )
+     -Wno-invalid-constexpr)
 if (LIBCXX_ENABLE_WERROR)
   add_compile_flags_if_supported(-Werror)
   add_compile_flags_if_supported(-WX)
