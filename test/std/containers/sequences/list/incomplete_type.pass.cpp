@@ -6,22 +6,22 @@
 // Source Licenses. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// UNSUPPORTED: libcpp-has-no-threads
-// UNSUPPORTED: c++98, c++03, c++11
 
-// <shared_mutex>
+// <list>
 
-// template <class Mutex> class shared_lock;
+// Check that std::list and it's iterators can be instantiated with an incomplete
+// type.
 
-// shared_lock();
+#include <list>
 
-#include <shared_mutex>
-#include <cassert>
+struct A {
+    std::list<A> l;
+    std::list<A>::iterator it;
+    std::list<A>::const_iterator cit;
+    std::list<A>::reverse_iterator rit;
+    std::list<A>::const_reverse_iterator crit;
+};
 
-int main()
-{
-    std::shared_lock<std::shared_timed_mutex> ul;
-    assert(!ul.owns_lock());
-    assert(ul.mutex() == nullptr);
+int main() {
+    A a;
 }
