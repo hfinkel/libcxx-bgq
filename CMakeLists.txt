@@ -67,12 +67,23 @@ set(LIBCXX_CXX_ABI "${LIBCXX_CXX_ABI}" CACHE STRING
 set(CXXABIS none libcxxabi libcxxrt libstdc++ libsupc++)
 set_property(CACHE LIBCXX_CXX_ABI PROPERTY STRINGS ;${CXXABIS})
 
+# Use a static copy of the ABI library when linking libc++. This option
+# cannot be used with LIBCXX_ENABLE_ABI_LINKER_SCRIPT.
 option(LIBCXX_ENABLE_STATIC_ABI_LIBRARY "Statically link the ABI library" OFF)
 
 # Generate and install a linker script inplace of libc++.so. The linker script
-# will link libc++ to the correct ABI library.
+# will link libc++ to the correct ABI library. This option is on by default
+# On UNIX platforms other than Apple unless 'LIBCXX_ENABLE_STATIC_ABI_LIBRARY'
+# is on.
+set(ENABLE_LINKER_SCRIPT_DEFAULT_VALUE OFF)
+if (LLVM_HAVE_LINK_VERSION_SCRIPT AND NOT LIBCXX_ENABLE_STATIC_ABI_LIBRARY
+      AND PYTHONINTERP_FOUND)
+    set(ENABLE_LINKER_SCRIPT_DEFAULT_VALUE ON)
+endif()
+
 option(LIBCXX_ENABLE_ABI_LINKER_SCRIPT
-      "Use and install a linker script for the given ABI library" OFF)
+      "Use and install a linker script for the given ABI library"
+      ${ENABLE_LINKER_SCRIPT_DEFAULT_VALUE})
 
 # Build libc++abi with libunwind. We need this option to determine whether to
 # link with libunwind or libgcc_s while running the test cases.
@@ -219,8 +230,9 @@ remove_flags(-DNDEBUG -UNDEBUG -D_DEBUG
              -stdlib=libc++ -stdlib=libstdc++ -lc++abi -m32)
 
 # FIXME(EricWF): See the FIXME on LIBCXX_ENABLE_PEDANTIC.
-# Remove the -pedantic flag provided by LLVM.
-remove_flags(-pedantic)
+# Remove the -pedantic flag and -Wno-pedantic and -pedantic-errors
+# so they don't get transformed into -Wno and -errors respectivly.
+remove_flags(-Wno-pedantic -pedantic-errors -pedantic)
 
 # Required flags ==============================================================
 add_compile_flags_if_supported(-std=c++11)
