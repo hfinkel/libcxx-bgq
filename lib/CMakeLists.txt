@@ -11,7 +11,7 @@ elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "SunOS")
 endif()
 
 # Add all the headers to the project for IDEs.
-if (MSVC_IDE OR XCODE)
+if (LIBCXX_CONFIGURE_IDE)
   file(GLOB_RECURSE LIBCXX_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/../include/*)
   if(WIN32)
     file( GLOB LIBCXX_WIN32_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/../include/support/win32/*.h)
@@ -24,10 +24,14 @@ if (MSVC_IDE OR XCODE)
   endif()
 endif()
 
+if(NOT LIBCXX_INSTALL_LIBRARY)
+  set(exclude_from_all EXCLUDE_FROM_ALL)
+endif()
+
 if (LIBCXX_ENABLE_SHARED)
-  add_library(cxx SHARED ${LIBCXX_SOURCES} ${LIBCXX_HEADERS})
+  add_library(cxx SHARED ${exclude_from_all} ${LIBCXX_SOURCES} ${LIBCXX_HEADERS})
 else()
-  add_library(cxx STATIC ${LIBCXX_SOURCES} ${LIBCXX_HEADERS})
+  add_library(cxx STATIC ${exclude_from_all} ${LIBCXX_SOURCES} ${LIBCXX_HEADERS})
 endif()
 
 if (DEFINED LIBCXX_CXX_ABI_DEPS)
@@ -75,6 +79,7 @@ add_library_flags_if(LIBCXX_HAS_C_LIB c)
 add_library_flags_if(LIBCXX_HAS_M_LIB m)
 add_library_flags_if(LIBCXX_HAS_RT_LIB rt)
 add_library_flags_if(LIBCXX_HAS_GCC_S_LIB gcc_s)
+add_library_flags_if(LIBCXX_HAS_ATOMIC_LIB atomic)
 
 # Setup flags.
 add_flags_if_supported(-fPIC)
@@ -172,8 +177,11 @@ endif()
 
 if (NOT CMAKE_CONFIGURATION_TYPES AND (LIBCXX_INSTALL_LIBRARY OR
                                        LIBCXX_INSTALL_HEADERS))
+    if(LIBCXX_INSTALL_LIBRARY)
+      set(deps DEPENDS cxx)
+    endif()
     add_custom_target(install-libcxx
-                      DEPENDS cxx
+                      ${deps}
                       COMMAND "${CMAKE_COMMAND}"
                       -DCMAKE_INSTALL_COMPONENT=libcxx
                       -P "${LIBCXX_BINARY_DIR}/cmake_install.cmake")
