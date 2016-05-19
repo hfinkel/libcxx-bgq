@@ -36,7 +36,7 @@ const bool system_clock::is_steady;
 system_clock::time_point
 system_clock::now() _NOEXCEPT
 {
-#ifdef CLOCK_REALTIME
+#if defined(CLOCK_REALTIME) && !defined(__bgq__)
     struct timespec tp;
     if (0 != clock_gettime(CLOCK_REALTIME, &tp))
         __throw_system_error(errno, "clock_gettime(CLOCK_REALTIME) failed");
