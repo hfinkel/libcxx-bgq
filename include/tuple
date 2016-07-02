@@ -379,11 +379,6 @@ template <class ..._Tp>
 _LIBCPP_INLINE_VISIBILITY
 void __swallow(_Tp&&...) _NOEXCEPT {}
 
-template <bool ..._Pred>
-struct __all
-    : is_same<__all<_Pred...>, __all<(_Pred, true)...>>
-{ };
-
 template <class ..._Tp>
 struct __lazy_all : __all<_Tp::value...> {};
 
@@ -662,7 +657,7 @@ public:
 
     template <class _AllocArgT, class _Alloc, bool _Dummy = true, class = typename enable_if<
         __lazy_and<
-            is_base_of<allocator_arg_t, _AllocArgT>,
+            is_same<allocator_arg_t, _AllocArgT>,
             __lazy_all<__dependent_type<is_default_constructible<_Tp>, _Dummy>...>
        >::value
     >::type>

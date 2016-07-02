@@ -439,11 +439,13 @@ class Configuration(object):
         self.config.available_features.add('c++filesystem')
         static_env = os.path.join(self.libcxx_src_root, 'test', 'std',
                                   'experimental', 'filesystem', 'Inputs', 'static_test_env')
+        static_env = os.path.realpath(static_env)
         assert os.path.isdir(static_env)
         self.cxx.compile_flags += ['-DLIBCXX_FILESYSTEM_STATIC_TEST_ROOT="%s"' % static_env]
 
         dynamic_env = os.path.join(self.libcxx_obj_root, 'test',
                                    'filesystem', 'Output', 'dynamic_env')
+        dynamic_env = os.path.realpath(dynamic_env)
         if not os.path.isdir(dynamic_env):
             os.makedirs(dynamic_env)
         self.cxx.compile_flags += ['-DLIBCXX_FILESYSTEM_DYNAMIC_TEST_ROOT="%s"' % dynamic_env]
@@ -605,6 +607,9 @@ class Configuration(object):
                 self.cxx.flags += ['-fsanitize=address']
                 if llvm_symbolizer is not None:
                     self.env['ASAN_SYMBOLIZER_PATH'] = llvm_symbolizer
+                # FIXME: Turn ODR violation back on after PR28391 is resolved
+                # https://llvm.org/bugs/show_bug.cgi?id=28391
+                self.env['ASAN_OPTIONS'] = 'detect_odr_violation=0'
                 self.config.available_features.add('asan')
                 self.config.available_features.add('sanitizer-new-delete')
             elif san == 'Memory' or san == 'MemoryWithOrigins':
@@ -626,7 +631,6 @@ class Configuration(object):
                 self.cxx.compile_flags += ['-O3']
                 self.env['UBSAN_OPTIONS'] = 'print_stacktrace=1'
                 self.config.available_features.add('ubsan')
-                self.config.available_features.add('sanitizer-new-delete')
             elif san == 'Thread':
                 self.cxx.flags += ['-fsanitize=thread']
                 self.config.available_features.add('tsan')
