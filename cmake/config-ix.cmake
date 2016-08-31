@@ -15,7 +15,7 @@ endif()
 # configuration checks to avoid spurious link errors.
 check_cxx_compiler_flag(-nodefaultlibs LIBCXX_SUPPORTS_NODEFAULTLIBS_FLAG)
 if (LIBCXX_SUPPORTS_NODEFAULTLIBS_FLAG)
-  set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -nodefaultlibs")
+#  set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -nodefaultlibs")
   if (LIBCXX_HAS_C_LIB)
     list(APPEND CMAKE_REQUIRED_LIBRARIES c)
   endif ()
