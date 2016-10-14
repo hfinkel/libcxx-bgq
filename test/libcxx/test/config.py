@@ -313,6 +313,13 @@ class Configuration(object):
         if self.cxx.hasCompileFlag('-fsized-deallocation'):
             self.config.available_features.add('fsized-deallocation')
 
+        if self.cxx.hasCompileFlag('-faligned-allocation'):
+            self.config.available_features.add('-faligned-allocation')
+        else:
+            # FIXME remove this once more than just clang-4.0 support
+            # C++17 aligned allocation.
+            self.config.available_features.add('no-aligned-allocation')
+
         if self.get_lit_bool('has_libatomic', False):
             self.config.available_features.add('libatomic')
 
@@ -347,7 +354,7 @@ class Configuration(object):
                     'Failed to infer a supported language dialect from one of %r'
                     % possible_stds)
         self.cxx.compile_flags += ['-std={0}'.format(std)]
-        self.config.available_features.add(std)
+        self.config.available_features.add(std.replace('gnu++', 'c++'))
         # Configure include paths
         self.configure_compile_flags_header_includes()
         self.target_info.add_cxx_compile_flags(self.cxx.compile_flags)
