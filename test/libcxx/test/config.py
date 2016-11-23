@@ -13,6 +13,7 @@ import platform
 import pkgutil
 import re
 import shlex
+import shutil
 import sys
 
 import lit.Test  # pylint: disable=import-error,no-name-in-module
@@ -64,6 +65,8 @@ class Configuration(object):
         self.cxx_library_root = None
         self.cxx_runtime_root = None
         self.abi_library_root = None
+        self.enable_modules = False
+        self.modules_flags = None
         self.env = {}
         self.use_target = False
         self.use_system_cxx_lib = False
@@ -83,6 +86,10 @@ class Configuration(object):
         conf = self.get_lit_conf(name)
         if conf is None:
             return default
+        if isinstance(conf, bool):
+            return conf
+        if not isinstance(conf, str):
+            raise TypeError('expected bool or string')
         if conf.lower() in ('1', 'true'):
             return True
         if conf.lower() in ('', '0', 'false'):
@@ -113,6 +120,7 @@ class Configuration(object):
         self.configure_warnings()
         self.configure_sanitizer()
         self.configure_coverage()
+        self.configure_modules()
         self.configure_substitutions()
         self.configure_features()
 
@@ -225,6 +233,7 @@ class Configuration(object):
             self.lit_config.fatal(
                 'unsupported value for "cxx_stdlib_under_test": %s'
                 % self.cxx_stdlib_under_test)
+        self.config.available_features.add(self.cxx_stdlib_under_test)
         if self.cxx_stdlib_under_test == 'libstdc++':
             self.config.available_features.add('libstdc++')
             # Manually enable the experimental and filesystem tests for libstdc++
@@ -375,7 +384,10 @@ class Configuration(object):
         if gcc_toolchain:
             self.cxx.flags += ['-gcc-toolchain', gcc_toolchain]
         if self.use_target:
-            self.cxx.flags += ['-target', self.config.target_triple]
+            if not self.cxx.addFlagIfSupported(
+                    ['-target', self.config.target_triple]):
+                self.lit_config.warning('use_target is true but -target is '\
+                        'not supported by the compiler')
 
     def configure_compile_flags_header_includes(self):
         support_path = os.path.join(self.libcxx_src_root, 'test/support')
@@ -714,6 +726,30 @@ class Configuration(object):
             self.cxx.flags += ['-g', '--coverage']
             self.cxx.compile_flags += ['-O0']
 
+    def configure_modules(self):
+        modules_flags = ['-fmodules']
+        if platform.system() != 'Darwin':
+            modules_flags += ['-Xclang', '-fmodules-local-submodule-visibility']
+        supports_modules = self.cxx.hasCompileFlag(modules_flags)
+        self.enable_modules = self.get_lit_bool('enable_modules', False)
+        if self.enable_modules and not supports_modules:
+            self.lit_config.fatal(
+                '-fmodules is enabled but not supported by the compiler')
+        if not supports_modules:
+            return
+        self.config.available_features.add('modules-support')
+        module_cache = os.path.join(self.config.test_exec_root,
+                                   'modules.cache')
+        module_cache = os.path.realpath(module_cache)
+        if os.path.isdir(module_cache):
+            shutil.rmtree(module_cache)
+        os.makedirs(module_cache)
+        self.modules_flags = modules_flags + \
+            ['-fmodules-cache-path=' + module_cache]
+        if self.enable_modules:
+            self.config.available_features.add('-fmodules')
+            self.cxx.compile_flags += self.modules_flags
+
     def configure_substitutions(self):
         sub = self.config.substitutions
         # Configure compiler substitutions
@@ -727,6 +763,7 @@ class Configuration(object):
         sub.append(('%compile_flags', compile_flags_str))
         sub.append(('%link_flags', link_flags_str))
         sub.append(('%all_flags', all_flags))
+
         # Add compile and link shortcuts
         compile_str = (self.cxx.path + ' -o %t.o %s -c ' + flags_str
                        + compile_flags_str)
@@ -736,6 +773,11 @@ class Configuration(object):
         build_str = self.cxx.path + ' -o %t.exe %s ' + all_flags
         sub.append(('%compile', compile_str))
         sub.append(('%link', link_str))
+        if self.enable_modules:
+            sub.append(('%build_module', build_str))
+        elif self.modules_flags is not None:
+            modules_str = ' '.join(self.modules_flags) + ' '
+            sub.append(('%build_module', build_str + ' ' + modules_str))
         sub.append(('%build', build_str))
         # Configure exec prefix substitutions.
         exec_env_str = 'env ' if len(self.env) != 0 else ''
@@ -748,7 +790,7 @@ class Configuration(object):
         sub.append(('%exec', exec_str))
         # Configure run shortcut
         sub.append(('%run', exec_str + ' %t.exe'))
-        # Configure not program substitions
+        # Configure not program substitutions
         not_py = os.path.join(self.libcxx_src_root, 'utils', 'not', 'not.py')
         not_str = '%s %s' % (sys.executable, not_py)
         sub.append(('not', not_str))
@@ -756,10 +798,12 @@ class Configuration(object):
     def configure_triple(self):
         # Get or infer the target triple.
         self.config.target_triple = self.get_lit_conf('target_triple')
-        self.use_target = bool(self.config.target_triple)
+        self.use_target = self.get_lit_bool('use_target', False)
+        if self.use_target and self.config.target_triple:
+            self.lit_config.warning('use_target is true but no triple is specified')
         # If no target triple was given, try to infer it from the compiler
         # under test.
-        if not self.use_target:
+        if not self.config.target_triple:
             target_triple = self.cxx.getTriple()
             # Drop sub-major version components from the triple, because the
             # current XFAIL handling expects exact matches for feature checks.

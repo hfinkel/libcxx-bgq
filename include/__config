@@ -257,10 +257,6 @@ typedef __char32_t char32_t;
 #  define _LIBCPP_NORETURN __attribute__ ((noreturn))
 #endif
 
-#if !(__has_feature(cxx_defaulted_functions))
-#define _LIBCPP_HAS_NO_DEFAULTED_FUNCTIONS
-#endif  // !(__has_feature(cxx_defaulted_functions))
-
 #if !(__has_feature(cxx_deleted_functions))
 #define _LIBCPP_HAS_NO_DELETED_FUNCTIONS
 #endif  // !(__has_feature(cxx_deleted_functions))
@@ -413,7 +409,6 @@ namespace std {
 
 #ifndef __GXX_EXPERIMENTAL_CXX0X__
 #define _LIBCPP_HAS_NO_DECLTYPE
-#define _LIBCPP_HAS_NO_DEFAULTED_FUNCTIONS
 #define _LIBCPP_HAS_NO_DELETED_FUNCTIONS
 #define _LIBCPP_HAS_NO_NULLPTR
 #define _LIBCPP_HAS_NO_UNICODE_CHARS
@@ -442,10 +437,6 @@ namespace std {
 #define _LIBCPP_HAS_NO_NULLPTR
 #endif
 
-#if _GNUC_VER < 407
-#define _LIBCPP_HAS_NO_DEFAULTED_FUNCTIONS
-#endif
-
 #endif  // __GXX_EXPERIMENTAL_CXX0X__
 
 #define _LIBCPP_BEGIN_NAMESPACE_STD namespace std { namespace _LIBCPP_NAMESPACE {
@@ -469,7 +460,6 @@ using namespace _LIBCPP_NAMESPACE __attribute__((__strong__));
 #define _LIBCPP_HAS_NO_VARIABLE_TEMPLATES
 #define _LIBCPP_HAS_NO_UNICODE_CHARS
 #define _LIBCPP_HAS_NO_DELETED_FUNCTIONS
-#define _LIBCPP_HAS_NO_DEFAULTED_FUNCTIONS
 #define _LIBCPP_HAS_NO_NOEXCEPT
 #define __alignof__ __alignof
 #define _LIBCPP_NORETURN __declspec(noreturn)
@@ -524,14 +514,17 @@ namespace std {
 # define _LIBCPP_DLL_VIS
 # define _LIBCPP_EXTERN_TEMPLATE_TYPE_VIS
 # define _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS
+# define _LIBCPP_OVERRIDABLE_FUNC_VIS
 #elif defined(_LIBCPP_BUILDING_LIBRARY)
 # define _LIBCPP_DLL_VIS __declspec(dllexport)
 # define _LIBCPP_EXTERN_TEMPLATE_TYPE_VIS
 # define _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS _LIBCPP_DLL_VIS
+# define _LIBCPP_OVERRIDABLE_FUNC_VIS _LIBCPP_DLL_VIS
 #else
 # define _LIBCPP_DLL_VIS __declspec(dllimport)
 # define _LIBCPP_EXTERN_TEMPLATE_TYPE_VIS _LIBCPP_DLL_VIS
 # define _LIBCPP_CLASS_TEMPLATE_INSTANTIATION_VIS
+# define _LIBCPP_OVERRIDABLE_FUNC_VIS
 #endif
 
 #define _LIBCPP_TYPE_VIS            _LIBCPP_DLL_VIS
@@ -574,6 +567,10 @@ namespace std {
 
 #ifndef _LIBCPP_FUNC_VIS_ONLY
 # define _LIBCPP_FUNC_VIS_ONLY _LIBCPP_FUNC_VIS
+#endif
+
+#ifndef _LIBCPP_OVERRIDABLE_FUNC_VIS
+# define _LIBCPP_OVERRIDABLE_FUNC_VIS _LIBCPP_FUNC_VIS
 #endif
 
 #ifndef _LIBCPP_EXCEPTION_ABI
@@ -665,7 +662,7 @@ template <unsigned> struct __static_assert_check {};
 #define _LIBCPP_CONSTEXPR constexpr
 #endif
 
-#ifdef _LIBCPP_HAS_NO_DEFAULTED_FUNCTIONS
+#ifdef _LIBCPP_CXX03_LANG
 #define _LIBCPP_DEFAULT {}
 #else
 #define _LIBCPP_DEFAULT = default;
@@ -787,6 +784,11 @@ template <unsigned> struct __static_assert_check {};
 #define _LIBCPP_CONSTEXPR_AFTER_CXX14 constexpr
 #else
 #define _LIBCPP_CONSTEXPR_AFTER_CXX14
+#endif
+
+// FIXME: Remove all usages of this macro once compilers catch up.
+#if !defined(__cpp_inline_variables) || (__cpp_inline_variables < 201606L)
+# define _LIBCPP_HAS_NO_INLINE_VARIABLES
 #endif
 
 #ifdef _LIBCPP_HAS_NO_RVALUE_REFERENCES
