@@ -97,8 +97,6 @@ steady_clock::now() _NOEXCEPT
 // MachInfo.numer / MachInfo.denom is often 1 on the latest equipment.  Specialize
 //   for that case as an optimization.
 
-#pragma GCC visibility push(hidden)
-
 static
 steady_clock::rep
 steady_simplified()
@@ -135,8 +133,6 @@ init_steady_clock()
         return &steady_simplified;
     return &steady_full;
 }
-
-#pragma GCC visibility pop
 
 steady_clock::time_point
 steady_clock::now() _NOEXCEPT
