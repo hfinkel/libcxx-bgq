@@ -48,7 +48,15 @@
 #define _LIBCPP_ABI_FORWARD_LIST_REMOVE_NODE_POINTER_UB
 #define _LIBCPP_ABI_FIX_UNORDERED_CONTAINER_SIZE_TYPE
 #define _LIBCPP_ABI_VARIADIC_LOCK_GUARD
+// Don't use a nullptr_t simulation type in C++03 instead using C++11 nullptr
+// provided under the alternate keyword __nullptr, which changes the mangling
+// of nullptr_t. This option is ABI incompatible with GCC in C++03 mode.
+#define _LIBCPP_ABI_ALWAYS_USE_CXX11_NULLPTR
 #elif _LIBCPP_ABI_VERSION == 1
+#if !defined(_WIN32)
+// Enable compiling a definition of error_category() into the libc++ dylib.
+#define _LIBCPP_DEPRECATED_ABI_EXTERNAL_ERROR_CATEGORY_CONSTRUCTOR
+#endif
 // Feature macros for disabling pre ABI v1 features. All of these options
 // are deprecated.
 #if defined(__FreeBSD__)
@@ -266,7 +274,11 @@ typedef __char32_t char32_t;
 #endif
 
 #if !(__has_feature(cxx_nullptr))
-#define _LIBCPP_HAS_NO_NULLPTR
+# if __has_extension(cxx_nullptr) && defined(_LIBCPP_ABI_ALWAYS_USE_CXX11_NULLPTR)
+#   define nullptr __nullptr
+# else
+#   define _LIBCPP_HAS_NO_NULLPTR
+# endif
 #endif
 
 #if !(__has_feature(cxx_rvalue_references))
@@ -651,6 +663,17 @@ namespace std {
 #  define _NOEXCEPT_(x)
 #endif
 
+#if defined(_LIBCPP_DEBUG_USE_EXCEPTIONS)
+# if !defined(_LIBCPP_DEBUG)
+#   error cannot use _LIBCPP_DEBUG_USE_EXCEPTIONS unless _LIBCPP_DEBUG is defined
+# endif
+# define _NOEXCEPT_DEBUG noexcept(false)
+# define _NOEXCEPT_DEBUG_(x) noexcept(false)
+#else
+# define _NOEXCEPT_DEBUG _NOEXCEPT
+# define _NOEXCEPT_DEBUG_(x) _NOEXCEPT_(x)
+#endif
+
 #ifdef _LIBCPP_HAS_NO_UNICODE_CHARS
 typedef unsigned short char16_t;
 typedef unsigned int   char32_t;
@@ -708,7 +731,8 @@ template <unsigned> struct __static_assert_check {};
 #define _NOALIAS
 #endif
 
-#if __has_feature(cxx_explicit_conversions) || defined(__IBMCPP__)
+#if __has_extension(cxx_explicit_conversions) || defined(__IBMCPP__) || \
+    (!defined(_LIBCPP_CXX03_LANG) && defined(__GNUC__)) // All supported GCC versions
 #   define _LIBCPP_EXPLICIT explicit
 #else
 #   define _LIBCPP_EXPLICIT
@@ -826,7 +850,7 @@ template <unsigned> struct __static_assert_check {};
 #endif
 
 #ifndef _LIBCPP_HAS_NO_ASAN
-extern "C" void __sanitizer_annotate_contiguous_container(
+_LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
   const void *, const void *, const void *, const void *);
 #endif
 
@@ -898,7 +922,7 @@ extern "C" void __sanitizer_annotate_contiguous_container(
 #define _LIBCPP_PROVIDES_DEFAULT_RUNE_TABLE
 #endif
 
-// Thread-unsafe functions such as strtok(), mbtowc() and localtime()
+// Thread-unsafe functions such as strtok() and localtime()
 // are not available.
 #ifdef __CloudABI__
 #define _LIBCPP_HAS_NO_THREAD_UNSAFE_C_FUNCTIONS

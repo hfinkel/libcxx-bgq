@@ -7,24 +7,26 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <list>
+// UNSUPPORTED: c++98, c++03
 
-// Call back() on empty const container.
+// <utility>
 
-#define _LIBCPP_DEBUG 1
-#define _LIBCPP_ASSERT(x, m) ((x) ? (void)0 : std::exit(0))
+// template <class T1, class T2> struct pair
 
-#include <list>
+// ~pair()
+
+
+#include <utility>
+#include <type_traits>
+#include <string>
 #include <cassert>
-#include <iterator>
-#include <exception>
-#include <cstdlib>
+
+#include "test_macros.h"
 
 int main()
 {
-    typedef int T;
-    typedef std::list<T> C;
-    const C c;
-    assert(c.back() == 0);
-    assert(false);
+  static_assert((std::is_trivially_destructible<
+      std::pair<int, float> >::value), "");
+  static_assert((!std::is_trivially_destructible<
+      std::pair<int, std::string> >::value), "");
 }
