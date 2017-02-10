@@ -1,3 +1,4 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
 //                     The LLVM Compiler Infrastructure
@@ -7,16 +8,31 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic ignored "-W#warnings"
+#ifndef __GLIBCXX__
+#error header can only be used when targeting libstdc++ or libsupc++
 #endif
 
-#define min THIS IS A NASTY MACRO!
-#define max THIS IS A NASTY MACRO!
+namespace std {
 
-#include <map>
-
-int main() {
-  std::map<int, int> m;
-  ((void)m);
+bad_alloc::bad_alloc() _NOEXCEPT
+{
 }
+
+bad_array_new_length::bad_array_new_length() _NOEXCEPT
+{
+}
+
+bad_array_length::bad_array_length() _NOEXCEPT
+{
+}
+
+
+bad_cast::bad_cast() _NOEXCEPT
+{
+}
+
+bad_typeid::bad_typeid() _NOEXCEPT
+{
+}
+
+} // namespace

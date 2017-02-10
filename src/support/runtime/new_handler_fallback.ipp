@@ -1,3 +1,4 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
 //                     The LLVM Compiler Infrastructure
@@ -7,16 +8,20 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic ignored "-W#warnings"
-#endif
+namespace std {
 
-#define min THIS IS A NASTY MACRO!
-#define max THIS IS A NASTY MACRO!
+_LIBCPP_SAFE_STATIC static std::new_handler __new_handler;
 
-#include <map>
-
-int main() {
-  std::map<int, int> m;
-  ((void)m);
+new_handler
+set_new_handler(new_handler handler) _NOEXCEPT
+{
+    return __sync_lock_test_and_set(&__new_handler, handler);
 }
+
+new_handler
+get_new_handler() _NOEXCEPT
+{
+    return __sync_fetch_and_add(&__new_handler, nullptr);
+}
+
+} // namespace std
