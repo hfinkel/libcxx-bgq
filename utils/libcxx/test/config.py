@@ -397,6 +397,9 @@ class Configuration(object):
         if '__cpp_structured_bindings' not in macros:
             self.config.available_features.add('libcpp-no-structured-bindings')
 
+        if '__cpp_deduction_guides' not in macros:
+            self.config.available_features.add('libcpp-no-deduction-guides')
+
         if self.is_windows:
             self.config.available_features.add('windows')
 
@@ -825,7 +828,7 @@ class Configuration(object):
                 if llvm_symbolizer is not None:
                     self.exec_env['ASAN_SYMBOLIZER_PATH'] = llvm_symbolizer
                 # FIXME: Turn ODR violation back on after PR28391 is resolved
-                # https://llvm.org/bugs/show_bug.cgi?id=28391
+                # https://bugs.llvm.org/show_bug.cgi?id=28391
                 self.exec_env['ASAN_OPTIONS'] = 'detect_odr_violation=0'
                 self.config.available_features.add('asan')
                 self.config.available_features.add('sanitizer-new-delete')
