@@ -73,7 +73,7 @@ __asm__("?wclog@__1@std@@3V?$basic_ostream@_WU?$char_traits@_W@__1@std@@@12@A")
 #endif
 ;
 
-ios_base::Init __start_std_streams;
+ios_base::Init __start_std_streams __attribute__((init_priority(101)));
 
 ios_base::Init::Init()
 {
