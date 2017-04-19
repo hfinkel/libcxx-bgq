@@ -7,31 +7,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-// UNSUPPORTED: c++98, c++03
+// <initializer_list>
 
-// <stack>
+// Test that the file can be included in C++03
 
-// explicit stack(container_type&& c);
-
-#include <stack>
-#include <cassert>
-
-#include "MoveOnly.h"
-
-
-template <class C>
-C
-make(int n)
-{
-    C c;
-    for (int i = 0; i < n; ++i)
-        c.push_back(MoveOnly(i));
-    return c;
-}
-
+#include <initializer_list>
 
 int main()
 {
-    std::stack<MoveOnly> q(make<std::deque<MoveOnly> >(5));
-    assert(q.size() == 5);
 }
