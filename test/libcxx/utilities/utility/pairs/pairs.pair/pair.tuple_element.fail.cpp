@@ -7,19 +7,19 @@
 //
 //===----------------------------------------------------------------------===//
 
-// UNSUPPORTED: c++98, c++03, c++11, c++14
-// <optional>
+// <utility>
 
-// struct nullopt_t{see below};
+// template <class T1, class T2> struct pair
 
-#include <optional>
+// tuple_element<I, pair<T1, T2> >::type
 
-using std::optional;
-using std::nullopt_t;
+#include <utility>
 
 int main()
 {
-    // I roughly interpret LWG2736 as "it shall not be possible to copy-list-initialize nullopt_t with an
-    // empty braced-init-list."
-    nullopt_t foo = {};
+    {
+    typedef std::pair<int, double> P;
+    std::tuple_element<2, P>::type foo; // expected-note {{requested here}}
+        // expected-error@utility:* {{static_assert failed "Index out of bounds in std::tuple_element<std::pair<T1, T2>>"}}
+    }
 }
